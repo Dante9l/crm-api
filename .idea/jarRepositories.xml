@@ -3,6 +3,16 @@
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
       <option name="id" value="central" />
+      <option name="name" value="central" />
+      <option name="url" value="https://maven.aliyun.com/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repo-vojlo" />
+      <option name="name" value="repo-vojlo" />
+      <option name="url" value="https://packages.aliyun.com/68e860b09add35de197aaf08/maven/repo-vojlo" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://repo.maven.apache.org/maven2" />
     </remote-repository>
@@ -25,6 +35,11 @@
       <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://maven.aliyun.com/repository/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="snapshots" />
+      <option name="name" value="snapshots" />
+      <option name="url" value="https://maven.aliyun.com/nexus/content/groups/public" />
     </remote-repository>
   </component>
 </project>
