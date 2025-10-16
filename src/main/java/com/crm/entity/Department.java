@@ -56,7 +56,7 @@ public class Department {
     @TableField(value = "delete_flag", fill = FieldFill.INSERT)
     @TableLogic
     @JsonIgnore
-    private Byte deleteFlag;
+    private Byte deleteFlag = 0;
 
     @ApiModelProperty("创建时间")
     @TableField(value = "create_time", fill = FieldFill.INSERT)

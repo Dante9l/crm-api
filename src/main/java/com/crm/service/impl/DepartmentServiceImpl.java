@@ -143,6 +143,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
             }
             baseMapper.updateById(department);
         }
+
     }
 
     @Override
