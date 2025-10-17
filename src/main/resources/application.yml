@@ -62,5 +62,7 @@ auth:
     - /swagger-resources/**
     - /swagger-ui.html
     - /swagger-ui/**
-    - /doc.html
+    - /doc.html/**
     - /                     # 根路径
+    - /crm-api/doc.html/**
+    - /crm-api/**

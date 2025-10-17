@@ -28,6 +28,9 @@ public class SysManager {
     @TableField("password")
     private String password;
 
+    @TableField("depart_id")
+    private Integer departId;
+
     @TableField("status")
     private Integer status;
 

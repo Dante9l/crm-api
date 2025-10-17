@@ -21,6 +21,9 @@
         <if test="query.account != null and query.account != ''  ">
             and sm.account like concat('%',#{query.account},'%')
         </if>
+        <if test="query.checkedDepartId != null ">
+            and sm.depart_id = #{query.checkedDepartId}
+        </if>
         <if test="query.type != null ">
             and sm.type = #{query.type}
         </if>
