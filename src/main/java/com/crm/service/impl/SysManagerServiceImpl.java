@@ -93,6 +93,7 @@ public class SysManagerServiceImpl extends ServiceImpl<SysManagerMapper, SysMana
         sysManagerVO.setAccount(sysManager.getAccount());
         sysManagerVO.setStatus(sysManager.getStatus());
         sysManagerVO.setRoleId(sysManagerRoleService.getByManagerId(manage.getId()).getRoleId());
+        sysManagerVO.setDepartId(sysManager.getDepartId());
         sysManagerVO.setCreateTime(sysManager.getCreateTime());
         return sysManagerVO;
     }

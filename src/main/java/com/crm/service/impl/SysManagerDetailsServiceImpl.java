@@ -5,6 +5,7 @@ import com.crm.entity.SysManager;
 import com.crm.enums.AccountStatusEnum;
 import com.crm.security.user.ManagerDetail;
 import com.crm.service.SysManagerDetailsService;
+import com.crm.service.SysManagerService;
 import com.crm.service.SysMenuService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class SysManagerDetailsServiceImpl implements SysManagerDetailsService {
     private final SysMenuService sysMenuService;
+    private final SysManagerService sysManagerService;
 
     @Override
     public UserDetails getManagerDetails(SysManager sysManager) {
@@ -37,6 +39,7 @@ public class SysManagerDetailsServiceImpl implements SysManagerDetailsService {
         Set<String> authoritySet = sysMenuService.getManagerAuthority(managerDetail);
         managerDetail.setAuthoritySet(authoritySet);
 
+        managerDetail.setDepartId(sysManagerService.getManagerInfo(managerDetail).getDepartId());
         return managerDetail;
     }
 

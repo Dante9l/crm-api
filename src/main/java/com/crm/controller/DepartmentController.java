@@ -33,8 +33,8 @@ public class DepartmentController {
 
     @PostMapping("/page")
     @Operation(summary = "获取部门列表")
-    public PageResult<Department> getPage(@RequestBody DepartmentQuery query) {
-        return departmentService.getPage(query);
+    public Result<PageResult<Department>> getPage(@RequestBody DepartmentQuery query) {
+        return Result.ok(departmentService.getPage(query));
     }
 
     @PostMapping("list")
