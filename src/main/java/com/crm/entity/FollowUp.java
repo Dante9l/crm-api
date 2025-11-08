@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -32,7 +34,7 @@ public class FollowUp {
 
     @ApiModelProperty("0-客户跟进，1-线索跟进")
     @TableField("target_type")
-    private Byte targetType;
+    private Integer targetType;
 
     @ApiModelProperty("跟进客户id")
     @TableField("customer_id")
@@ -48,12 +50,13 @@ public class FollowUp {
 
     @ApiModelProperty("下次跟进时间")
     @TableField("next_follow_type")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime nextFollowType;
 
     @ApiModelProperty("逻辑删除0-未删除，1-已删除")
     @TableField(value = "delete_flag", fill = FieldFill.INSERT)
     @TableLogic
-    private Byte deleteFlag;
+    private Integer deleteFlag;
 
     @ApiModelProperty("创建时间")
     @TableField(value = "create_time", fill = FieldFill.INSERT)

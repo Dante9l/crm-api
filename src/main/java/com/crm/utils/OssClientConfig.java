@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OssClientConfig {
-    @Value("${aliyun.oss.endpoint}")
+    @Value("${oss.endpoint}")
     String endpoint;
 
-    @Value("${aliyun.oss.accessKeyId}")
+    @Value("${oss.accessKeyId}")
     String accessKeyId;
 
-    @Value("${aliyun.oss.accessKeySecret}")
+    @Value("${oss.accessKeySecret}")
     String accessKeySecret;
 
     @Bean

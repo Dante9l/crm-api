@@ -20,7 +20,7 @@ public class CommonServiceImpl implements CommonService {
     @Resource
     private OSSClient ossClient;
 
-    @Value("${aliyun.oss.bucketName}")
+    @Value("${oss.bucketName}")
     private String bucketName;
 
     @Override
