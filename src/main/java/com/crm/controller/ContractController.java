@@ -1,7 +1,9 @@
 package com.crm.controller;
 
+import com.crm.common.aop.Log;
 import com.crm.common.result.PageResult;
 import com.crm.common.result.Result;
+import com.crm.enums.BusinessType;
 import com.crm.query.ContractQuery;
 import com.crm.service.ContractService;
 import com.crm.vo.ContractVO;
@@ -34,6 +36,7 @@ public class ContractController {
     }
 
     @PostMapping("saveOrUpdate")
+    @Log(title = "合同保存或修改", businessType = BusinessType.INSERT_OR_UPDATE)
     @Operation(summary = "保存或更新合同")
     public Result saveOrUpdate(@RequestBody @Valid ContractVO contractVO) {
         contractService.saveOrUpdate(contractVO);

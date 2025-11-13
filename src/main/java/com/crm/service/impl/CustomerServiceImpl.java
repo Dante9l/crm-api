@@ -10,11 +10,14 @@ import com.crm.entity.Customer;
 import com.crm.entity.SysManager;
 import com.crm.mapper.CustomerMapper;
 import com.crm.query.CustomerQuery;
+import com.crm.query.CustomerTrendQuery;
 import com.crm.query.IdQuery;
 import com.crm.security.user.SecurityUser;
 import com.crm.service.CustomerService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.crm.utils.DateUtils;
 import com.crm.utils.ExcelUtils;
+import com.crm.vo.CustomerTrendVO;
 import com.crm.vo.CustomerVO;
 import com.fhs.common.utils.StringUtil;
 import com.github.yulichang.base.MPJBaseMapper;
@@ -25,7 +28,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.Security;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static com.crm.utils.DateUtils.*;
 
 /**
  * <p>
@@ -142,4 +153,92 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
         return wrapper;
     }
+
+    @Override
+    public Map<String, List> getCustomerTrendData(CustomerTrendQuery query) {
+        //       处理不同请求类型的时间
+        //        x轴时间数据
+        List<String> timeList = new ArrayList<>();
+        //        统计客户变化数据
+        List<Integer> countList = new ArrayList<>();
+        List<CustomerTrendVO> tradeStatistics;
+
+        if ("day".equals(query.getTransactionType())) {
+            LocalDateTime now = LocalDateTime.now();
+            // 截断毫秒和纳秒部分影响sql 查询结果
+            LocalDateTime truncatedNow = now.truncatedTo(ChronoUnit.SECONDS);
+            LocalDateTime startTime = now.withHour(0).withMinute(0).withSecond(0).truncatedTo(ChronoUnit.SECONDS);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            List<String> timeRange = new ArrayList<>();
+            timeRange.add(formatter.format(startTime));
+            timeRange.add(formatter.format(truncatedNow));
+            query.setTimeRange(timeRange);
+            timeList = getHourData(timeList);
+            tradeStatistics = baseMapper.getTradeStatistics(query);
+        } else if ("monthrange".equals(query.getTransactionType())) {
+            query.setTimeFormat("'%Y-%m'");
+            timeList = getMonthInRange(query.getTimeRange().get(0), query.getTimeRange().get(1));
+            tradeStatistics = baseMapper.getTradeStatisticsByDay(query);
+        } else if ("week".equals(query.getTransactionType())) {
+            timeList = getWeekInRange(query.getTimeRange().get(0), query.getTimeRange().get(1));
+            tradeStatistics = baseMapper.getTradeStatisticsByWeek(query);
+        } else {
+            query.setTimeFormat("'%Y-%m-%d'");
+            timeList = DateUtils.getDatesInRange(query.getTimeRange().get(0), query.getTimeRange().get(1));
+            tradeStatistics = baseMapper.getTradeStatisticsByDay(query);
+        }
+
+        //        匹配时间点查询到的数据，没有值的默认为0
+        List<CustomerTrendVO> finalTradeStatistics = tradeStatistics;
+
+        timeList.forEach(item -> {
+            // 'item' 可能是 "HH", "YYYY-MM", "WW", "YYYY-MM-DD"
+
+            int totalCountForPeriod = finalTradeStatistics.stream()
+                    .filter(vo -> {
+                        String tradeTime = vo.getTradeTime();
+                        if (tradeTime == null) {
+                            return false; // 过滤掉空数据
+                        }
+
+                        String type = query.getTransactionType();
+
+                        // 【重构】 Filter 内部必须镜像外部的查询逻辑
+
+                        if ("day".equals(type)) {
+                            // 'item' 是 "HH", 'tradeTime' 也是 "HH"
+                            return tradeTime.length() >= 2 && item.substring(0, 2).equals(tradeTime.substring(0, 2));
+
+                        } else if ("week".equals(type)) {
+                            // 【已修复】
+                            // 'item' 是 "44", 'tradeTime' 是 "2025-W44"
+                            // 检查 "2025-W44" 的最后两位是否等于 "44"
+                            // (假设格式为 YYYY-W##，长度为8)
+                            return tradeTime.length() >= 7 && tradeTime.substring(6).equals(item);
+                            // 或者使用更安全的分隔符逻辑:
+                            // String[] parts = tradeTime.split("-W");
+                            // return parts.length == 2 && parts[1].equals(item);
+
+                        } else if ("monthrange".equals(type)) {
+                            // 'item' 是 "2025-10", 'tradeTime' 是 "2025-10-03"
+                            return tradeTime.length() >= 7 && tradeTime.substring(0, 7).equals(item);
+
+                        } else {
+                            // 默认 (daterange)
+                            // 'item' 是 "2025-10-03", 'tradeTime' 也是 "2025-10-03"
+                            return tradeTime.equals(item);
+                        }
+                    })
+                    .mapToInt(CustomerTrendVO::getTradeCount) // 提取所有匹配项的 count
+                    .sum(); // 计算它们的总和
+
+            countList.add(totalCountForPeriod);
+        });
+
+        Map<String, List> result = new HashMap<>();
+        result.put("timeList", timeList);
+        result.put("countList", countList);
+        return result;
+    }
+
 }

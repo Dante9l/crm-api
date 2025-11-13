@@ -25,4 +25,107 @@
         <result column="update_time" property="updateTime" />
     </resultMap>
 
+
+    <!-- 分钟级（HH:mm）统计：getTradeStatistics -->
+    <select id="getTradeStatistics"
+            parameterType="com.crm.query.CustomerTrendQuery"
+            resultType="com.crm.vo.CustomerTrendVO">
+        <![CDATA[
+    SELECT
+      COUNT(*)                               AS tradeCount,
+      DATE_FORMAT(create_time, '%H:%i')      AS tradeTime
+    FROM t_customer
+    WHERE delete_flag = 0
+    ]]>
+        <if test="query.timeRange != null and query.timeRange.size == 2
+              and query.timeRange[0] != null and query.timeRange[1] != null">
+            <![CDATA[
+      AND create_time BETWEEN #{query.timeRange[0]} AND #{query.timeRange[1]}
+      ]]>
+        </if>
+        <![CDATA[
+    GROUP BY DATE_FORMAT(create_time, '%H:%i')
+    ORDER BY tradeTime ASC
+    ]]>
+    </select>
+
+    <!-- 按“日/月/年”聚合：getTradeStatisticsByDay
+         通过 choose 白名单映射 timeFormat，避免 ${} 直拼 -->
+    <select id="getTradeStatisticsByDay"
+            parameterType="com.crm.query.CustomerTrendQuery"
+            resultType="com.crm.vo.CustomerTrendVO">
+        <![CDATA[
+    SELECT
+      COUNT(*) AS tradeCount,
+    ]]>
+        <choose>
+            <!-- day / month / year 三种安全模式 -->
+            <when test="query.timeFormat == 'day'">
+                <![CDATA[ DATE_FORMAT(create_time, '%Y-%m-%d') AS tradeTime ]]>
+            </when>
+            <when test="query.timeFormat == 'month'">
+                <![CDATA[ DATE_FORMAT(create_time, '%Y-%m')    AS tradeTime ]]>
+            </when>
+            <when test="query.timeFormat == 'year'">
+                <![CDATA[ DATE_FORMAT(create_time, '%Y')       AS tradeTime ]]>
+            </when>
+            <!-- 默认按日 -->
+            <otherwise>
+                <![CDATA[ DATE_FORMAT(create_time, '%Y-%m-%d') AS tradeTime ]]>
+            </otherwise>
+        </choose>
+        <![CDATA[
+    FROM t_customer
+    WHERE delete_flag = 0
+    ]]>
+        <if test="query.timeRange != null and query.timeRange.size == 2
+              and query.timeRange[0] != null and query.timeRange[1] != null">
+            <![CDATA[
+      AND create_time BETWEEN #{query.timeRange[0]} AND #{query.timeRange[1]}
+      ]]>
+        </if>
+        <![CDATA[
+    GROUP BY tradeTime
+    ORDER BY tradeTime ASC
+    ]]>
+    </select>
+
+    <!-- 按周聚合（ISO 周）：getTradeStatisticsByWeek
+         使用 YEARWEEK(x,1) 分组，输出如 2025-W45 -->
+    <select id="getTradeStatisticsByWeek"
+            parameterType="com.crm.query.CustomerTrendQuery"
+            resultType="com.crm.vo.CustomerTrendVO">
+        <![CDATA[
+SELECT
+  COUNT(*) AS tradeCount,
+  CONCAT(
+    /*
+     * [修改点]：
+     * 为了兼容 only_full_group_by 模式，
+     * SELECT 中的非聚合列 (create_time) 必须使用聚合函数 (如 MIN 或 MAX)。
+     * 因为已经按 YEARWEEK 分组，所以 MIN(create_time) 仍然是那一周的日期。
+     */
+    DATE_FORMAT(MIN(create_time), '%x'),
+    '-W',
+    LPAD(WEEK(MIN(create_time), 1), 2, '0')
+  ) AS tradeTime
+FROM t_customer
+WHERE delete_flag = 0
+]]>
+        <if test="query.timeRange != null and query.timeRange.size == 2
+          and query.timeRange[0] != null and query.timeRange[1] != null">
+            <![CDATA[
+  AND create_time BETWEEN #{query.timeRange[0]} AND #{query.timeRange[1]}
+  ]]>
+        </if>
+        <![CDATA[
+/*
+ * [保持不变]：
+ * GROUP BY 和 ORDER BY 保持使用 YEARWEEK，
+ * 它与 SELECT 中 MIN(create_time) 的周数是对应的。
+ */
+GROUP BY YEARWEEK(create_time, 1)
+ORDER BY YEARWEEK(create_time, 1) ASC
+]]>
+    </select>
 </mapper>
